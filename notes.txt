@@ -1,0 +1,28 @@
+//PARA INICIAR:
+/php -S 127.0.0.1:8000 -t public - para iniciar inicia pela pasta de produção: "public"
+
+php bin/console doctrine:database:create - cria o banco de dados com base na string em DATABASE_URL em ".env"
+
+//ORM SYMFONY:
+
+ANTES DE MEXER NO ORM LIBERE AS SEGUINTES EXTENSÕES NO php.ini:
+pgsql
+pdo_pgsql
+
+tire o ";" da frente de "extension"
+
+https://symfony.com/doc/current/doctrine.html - o ORM do symfony
+
+composer require symfony/orm-pack - para instalar o gerenciador de migrations
+
+composer require symfony/maker-bundle --dev - para instalar o gerenciador de entitys/controllers/etc.. (https://symfony.com/bundles/SymfonyMakerBundle/current/index.html)
+
+php bin/console make:entity - cria/edita entidade (abre dialog)
+
+php bin/console make:migration - faz uma migration para rodas todas as entidades criadas para o banco de dados
+
+php bin/console doctrine:migrations:migrate - roda as migrations
+
+//CONTROLLER:
+
+php bin/console make:controller NomeDoSeuController - cria controller
