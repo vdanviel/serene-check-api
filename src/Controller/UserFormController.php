@@ -26,41 +26,30 @@ use Doctrine\ORM\EntityManagerInterface;
 
 class UserFormController extends AbstractController
 {
-    #[Route('/form/register', name: 'user_form_register' , methods: ['POST'])]
-    public function register(EntityManagerInterface $entityManager, Request $req): JsonResponse
+
+    private $entityManager;
+
+    public function __construct(EntityManagerInterface $entityManager)
+    {
+        $this->entityManager = $entityManager;
+    }
+
+    public function register(string $question, string $answer, int $user_id): JsonResponse
     {
 
-        $content = $req->getContent();
-
-        $data = !empty($content) ? $req->toArray() : [];
-
-        if (!isset($data['question'], $data['answer'], $data['user_id']) || empty($data['question']) || empty($data['answer']) || empty($data['user_id'])) {
-            return $this->json([
-                'status' => false,
-                'message' => 'The `question`, `answer`, `user_id` fields are required.'
-            ], JsonResponse::HTTP_BAD_REQUEST);
-        }
-
         //verifica se usuario já existe..
-        $user = $entityManager->getRepository(User::class)->find(intval($data['user_id']));
-
-        if (!$user) {
-            return $this->json([
-                "status" => false,
-                "message" => "User not found."
-            ], JsonResponse::HTTP_BAD_REQUEST);
-        }
+        $user = $this->entityManager->getRepository(User::class)->find($user_id);
 
         $user_form = new UserForm();
-        $user_form->setQuestion($data['question']);
-        $user_form->setAnswer($data['answer']);
+        $user_form->setQuestion($question);
+        $user_form->setAnswer($answer);
         $user_form->setUserId($user);
 
         // tell Doctrine you want to (eventually) save the user_form (no queries yet)
-        $entityManager->persist($user_form);
+        $this->entityManager->persist($user_form);
 
         // actually executes the queries (i.e. the INSERT query)
-        $entityManager->flush();
+        $this->entityManager->flush();
 
         return $this->json([
             'status' => true,

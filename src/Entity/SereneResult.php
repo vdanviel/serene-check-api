@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Repository\SereneResultRepository;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: SereneResultRepository::class)]
@@ -13,52 +14,52 @@ class SereneResult
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(nullable: true)]
-    private ?array $sentence = null;
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $content = null;
 
-    #[ORM\Column(nullable: true)]
-    private ?array $ia_answer = null;
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $ia_answer = null;
 
-    #[ORM\OneToOne(cascade: ['persist', 'remove'])]
-    private ?UserForm $id_user_form = null;
+    #[ORM\ManyToOne]
+    private ?User $user_id = null;
 
     public function getId(): ?int
     {
         return $this->id;
     }
 
-    public function getSentence(): ?array
+    public function getContent(): ?string
     {
-        return $this->sentence;
+        return $this->content;
     }
 
-    public function setSentence(?array $sentence): static
+    public function setContent(?string $content): static
     {
-        $this->sentence = $sentence;
+        $this->content = $content;
 
         return $this;
     }
 
-    public function getIaAnswer(): ?array
+    public function getIaAnswer(): ?string
     {
         return $this->ia_answer;
     }
 
-    public function setIaAnswer(?array $ia_answer): static
+    public function setIaAnswer(?string $ia_answer): static
     {
         $this->ia_answer = $ia_answer;
 
         return $this;
     }
 
-    public function getIdUserForm(): ?UserForm
+    public function getUserId(): ?User
     {
-        return $this->id_user_form;
+        return $this->user_id;
     }
 
-    public function setIdUserForm(?UserForm $id_user_form): static
+    public function setUserId(?User $user_id): static
     {
-        $this->id_user_form = $id_user_form;
+        $this->user_id = $user_id;
 
         return $this;
     }
