@@ -59,11 +59,13 @@ class UserController extends AbstractController
     {
 
         $token = $request->query->getString('token');
+        $offset = $request->query->getString('offset', 0);
+        $limit = $request->query->getString('limit', 10);
 
-        if (!$token) {
+        if ($token === "" || $offset === "" || $limit === "") {
             return $this->json([
                 'status' => false,
-                'message' => 'Please send the `token` query.'
+                'message' => 'Please send the `token` / `offset` / `limit` query.'
             ], JsonResponse::HTTP_BAD_REQUEST);
         }
 
@@ -76,7 +78,7 @@ class UserController extends AbstractController
             ], JsonResponse::HTTP_BAD_REQUEST);
         }
 
-        $dialogs = $entityManager->getRepository(SereneResult::class)->findBy(['user_id' => $user->getId()]);
+        $dialogs = $entityManager->getRepository(SereneResult::class)->listUserDialogs($user, $limit, $offset);
 
         $user_data = [
             "user" => [
@@ -84,22 +86,8 @@ class UserController extends AbstractController
                 "token" => $user->getToken(),
                 "created_at" => $user->getCreatedAt()
             ],
-            "interactions" => []
+            "interactions" => $dialogs
         ];
-
-        foreach ($dialogs as $key => $value) {
-            
-            array_push(
-                $user_data["interactions"],
-                [
-                    "interaction" => $value->getContent(),
-                    "description" => $value->getAiAnswer(),
-                    "diagnostic" => $value->getDiagnostic(),
-                    "created_at" => $value->getCreatedAt()
-                ]
-            );
-
-        }
 
         return $this->json($user_data, JsonResponse::HTTP_OK);
 

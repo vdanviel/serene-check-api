@@ -3,6 +3,8 @@
 namespace App\Repository;
 
 use App\Entity\SereneResult;
+
+use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -46,16 +48,29 @@ class SereneResultRepository extends ServiceEntityRepository
     /**
      * @return SereneResult[]
      */
-    public function findAllWithLimit(int $limit): array
+    public function listAll(int $limit, int $offset): array
     {
         $entityManager = $this->getEntityManager();
 
         $query = $entityManager->createQuery(
-            'SELECT sr FROM App\Entity\SereneResult sr ORDER BY sr.id DESC'
-        )->setMaxResults($limit);
+            'SELECT table FROM App\Entity\SereneResult table ORDER BY table.created_at DESC'
+        )->setMaxResults($limit)->setFirstResult($offset);
 
         // returns an array of Product objects
-        return $query->execute();
+        return $query->getArrayResult();
     }
 
+    public function listUserDialogs(User $user, int $limit, int $offset): array
+    {
+
+        $entityManager = $this->getEntityManager();
+
+        $query = $entityManager->createQuery(
+            'SELECT table FROM App\Entity\SereneResult table WHERE table.user_id = :id ORDER BY table.created_at DESC'
+        )->setParameter(':id', $user->getId())->setMaxResults($limit)->setFirstResult($offset);
+
+        // returns an array of Product objects
+        return $query->getArrayResult();
+
+    }
 }

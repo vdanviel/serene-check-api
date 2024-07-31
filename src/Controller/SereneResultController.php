@@ -112,21 +112,19 @@ class SereneResultController extends AbstractController
     #[Route('/serene/all', name: 'serene_all', methods: ['GET'])]
     public function index(Request $request, EntityManagerInterface $entityManager): Response
     {
-        $limit = $request->query->getInt('limit', 10);
+        $limit = $request->query->getString('limit', 10);
+        $offset = $request->query->getString('offset', 0);
 
-        $dialogs = $entityManager->getRepository(SereneResult::class)->findAllWithLimit($limit);
-        
-        $response = [];
-
-        foreach ($dialogs as $value) {
-
-            $user = $entityManager->getRepository(User::class)->find($value->getUserId());
-
-            array_push($response, ["content" => $value->getContent(), "diagnostic" => $value->getAiAnswer(), "ansiety" => $value->isResult(), "username" => $user->getName()]);
-
+        if ($offset === "" || $limit === "") {
+            return $this->json([
+                'status' => false,
+                'message' => 'Please send the `offset` / `limit` query.'
+            ], JsonResponse::HTTP_BAD_REQUEST);
         }
 
-        return $this->json($response);
+        $dialogs = $entityManager->getRepository(SereneResult::class)->listAll(intval($limit), intval($offset));
+
+        return $this->json($dialogs);
 
     }
 
