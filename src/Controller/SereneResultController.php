@@ -12,6 +12,8 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 
+use Symfony\Component\Serializer\Encoder\EncoderInterface;
+
 use App\Entity\SereneResult;
 use App\Entity\User;
 
@@ -27,8 +29,8 @@ class SereneResultController extends AbstractController
         $this->userFormController = $userFormController;
     }
 
-    #[Route('/serene/result', name: 'app_serene_result', methods: ['POST'])]
-    public function generate(EntityManagerInterface $entityManager, UserFormController $userFormController, Request $req): JsonResponse
+    #[Route('/serene/result', name: 'serene_generate', methods: ['POST'])]
+    public function generate(EntityManagerInterface $entityManager,  UserFormController $userFormController, Request $req): JsonResponse
     {
         $content = $req->toArray();
 
@@ -90,7 +92,8 @@ class SereneResultController extends AbstractController
 
         // Salvar interação com IA no banco de dados...
         $serene = new SereneResult();
-        $serene->setContent($content);
+
+        $serene->setContent(json_encode($dialog));//para salvar as perguntas e respostas no banco de dados em SereneResult vamos salvar como json..
         $serene->setIaAnswer(json_encode($ia_result));
         $serene->setUserId($user);
     
@@ -106,4 +109,16 @@ class SereneResultController extends AbstractController
         ]);
     }
     
+    #[Route('/serene/all', name: 'serene_all', methods: ['GET'])]
+    public function index(Request $request, EncoderInterface $encoder, EntityManagerInterface $entityManager): Response
+    {
+        $limit = $request->query->getInt('limit', 10);
+
+        $dialogs = $entityManager->getRepository(SereneResult::class)->findAllWithLimit($limit);
+        
+        //$jsonDialogs = $encoder->encode($dialogs, 'json');
+
+        return $this->json($dialogs);
+    }
+
 }

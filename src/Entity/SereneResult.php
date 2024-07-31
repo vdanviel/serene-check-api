@@ -18,10 +18,19 @@ class SereneResult
     private ?string $content = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
-    private ?string $ia_answer = null;
+    private ?string $ai_answer = null;
 
     #[ORM\ManyToOne]
     private ?User $user_id = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $created_at = null;
+
+    public function __construct(){
+
+        $this->created_at = new \DateTimeImmutable;
+
+    }
 
     public function getId(): ?int
     {
@@ -40,14 +49,14 @@ class SereneResult
         return $this;
     }
 
-    public function getIaAnswer(): ?string
+    public function getAiAnswer(): ?string
     {
-        return $this->ia_answer;
+        return $this->ai_answer;
     }
 
-    public function setIaAnswer(?string $ia_answer): static
+    public function setAiAnswer(?string $ai_answer): static
     {
-        $this->ia_answer = $ia_answer;
+        $this->ai_answer = $ai_answer;
 
         return $this;
     }
@@ -60,6 +69,18 @@ class SereneResult
     public function setUserId(?User $user_id): static
     {
         $this->user_id = $user_id;
+
+        return $this;
+    }
+
+    public function getCreatedAt(): ?\DateTimeImmutable
+    {
+        return $this->created_at;
+    }
+
+    public function setCreatedAt(?\DateTimeImmutable $created_at): static
+    {
+        $this->created_at = $created_at;
 
         return $this;
     }

@@ -28,6 +28,9 @@ class User
 
     private Collection $userAnswers;
 
+    #[ORM\Column(length: 15, nullable: true, unique: true)]
+    private ?string $token = null;
+
     public function __construct()
     {
         $this->userAnswers = new ArrayCollection();
@@ -59,6 +62,18 @@ class User
     public function setCreatedAt(\DateTimeImmutable $created_at): static
     {
         $this->created_at = $created_at;
+
+        return $this;
+    }
+
+    public function getToken(): ?string
+    {
+        return $this->token;
+    }
+
+    public function setToken(?string $token): static
+    {
+        $this->token = $token;
 
         return $this;
     }

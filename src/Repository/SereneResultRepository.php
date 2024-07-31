@@ -40,4 +40,22 @@ class SereneResultRepository extends ServiceEntityRepository
     //            ->getOneOrNullResult()
     //        ;
     //    }
+
+    //https://symfony.com/doc/current/doctrine.html#querying-for-objects-the-repository
+    //https://www.doctrine-project.org/projects/doctrine-orm/en/3.2/cookbook/dql-custom-walkers.html#:~:text=The%20Doctrine%20Query%20Language%20(DQL,the%20database%20using%20your%20entities.
+    /**
+     * @return SereneResult[]
+     */
+    public function findAllWithLimit(int $limit): array
+    {
+        $entityManager = $this->getEntityManager();
+
+        $query = $entityManager->createQuery(
+            'SELECT sr FROM App\Entity\SereneResult sr ORDER BY sr.id DESC'
+        )->setMaxResults($limit);
+
+        // returns an array of Product objects
+        return $query->execute();
+    }
+
 }
