@@ -48,16 +48,22 @@ class SereneResultRepository extends ServiceEntityRepository
     /**
      * @return SereneResult[]
      */
-    public function listAll(int $limit, int $offset): array
+    public function listAllUserDialogs(int $limit, int $offset): array
     {
         $entityManager = $this->getEntityManager();
 
+        //https://symfony.com/doc/current/doctrine/associations.html#joining-related-records
+        /*SELECT p, c
+            FROM App\Entity\Product p
+            INNER JOIN p.category c
+            WHERE p.id = :id*/
         $query = $entityManager->createQuery(
-            'SELECT table FROM App\Entity\SereneResult table ORDER BY table.created_at DESC'
+            'SELECT sr, usrn.name FROM App\Entity\SereneResult sr INNER JOIN sr.user_id usrn ORDER BY sr.created_at DESC'
         )->setMaxResults($limit)->setFirstResult($offset);
 
         // returns an array of Product objects
         return $query->getArrayResult();
+
     }
 
     public function listUserDialogs(User $user, int $limit, int $offset): array

@@ -122,7 +122,7 @@ class SereneResultController extends AbstractController
             ], JsonResponse::HTTP_BAD_REQUEST);
         }
 
-        $dialogs = $entityManager->getRepository(SereneResult::class)->listAll(intval($limit), intval($offset));
+        $dialogs = $entityManager->getRepository(SereneResult::class)->listAllUserDialogs(intval($limit), intval($offset));
 
         return $this->json($dialogs);
 
