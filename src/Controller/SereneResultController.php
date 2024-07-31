@@ -36,16 +36,14 @@ class SereneResultController extends AbstractController
 
         $data = !empty($content) ? $req->toArray() : [];
     
-        if (!isset($data['dialog'], $data['user_id']) || empty($data['dialog']) || empty($data['user_id'])) {
+        if (!isset($data['dialog'], $data['token']) || empty($data['dialog']) || empty($data['token'])) {
             return $this->json([
                 'status' => false,
-                'message' => 'The `dialog` and `user_id` fields are required.'
+                'message' => 'The `dialog` and `token` fields are required.'
             ], JsonResponse::HTTP_BAD_REQUEST);
         }
     
-        $dialog = $data['dialog'];
-    
-        if (!is_array($dialog)) {
+        if (!is_array($data['dialog'])) {
             return $this->json([
                 'status' => false,
                 'message' => 'The `dialog` field must be a valid JSON array.'
@@ -53,7 +51,7 @@ class SereneResultController extends AbstractController
         }
         
         //verifica se usuario existe..
-        $user = $entityManager->getRepository(User::class)->find(intval($data['user_id']));
+        $user = $entityManager->getRepository(User::class)->findOneBy(['token' => $data['token']]);
 
         if (!$user) {
             return $this->json([
@@ -63,7 +61,7 @@ class SereneResultController extends AbstractController
         }
 
         //salvar perguntas e respostas...
-        foreach ($dialog as $entry) {
+        foreach ($data['dialog'] as $entry) {
 
             if (!isset($entry['question'], $entry['answer'])) {
                 return $this->json([
@@ -72,13 +70,13 @@ class SereneResultController extends AbstractController
                 ], JsonResponse::HTTP_BAD_REQUEST);
             }
 
-            $userFormController->register($entry['question'], $entry['answer'], $data['user_id']);
+            $userFormController->register($entry['question'], $entry['answer'], $user->getId());
         }
     
         $gpt_client = new GeminiController();
     
         $content = "";
-        foreach ($dialog as $key => $entry) {
+        foreach ($data['dialog'] as $key => $entry) {
 
             $key = $key + 1;
 
@@ -86,15 +84,15 @@ class SereneResultController extends AbstractController
 
         }
     
-        $generated = $gpt_client->generateResult("Pretend you are a professional psychologist. Give me a FICTITIOUS diagnosis based on these questions whether I have anxiety or not. Justify why.", $content);
+        $generated = $gpt_client->generateResult("Pretend you are a professional psychologist. Give me a FICTITIOUS diagnosis based on these questions whether I have anxiety or not even if thee chances are few. Justify why.", $content);
         
         $ia_result = json_decode($generated, true);
 
-        // Salvar interação com IA no banco de dados...
+        //salvar interação com IA no banco de dados...
         $serene = new SereneResult();
 
-        $serene->setContent(json_encode($dialog));//para salvar as perguntas e respostas no banco de dados em SereneResult vamos salvar como json..
-        $serene->setIaAnswer(json_encode($ia_result));
+        $serene->setContent(json_encode($data['dialog']));//para salvar as perguntas e respostas no banco de dados em SereneResult vamos salvar como json..
+        $serene->setAiAnswer(json_encode($ia_result));
         $serene->setUserId($user);
     
         // Tell Doctrine you want to (eventually) save the Product (no queries yet)

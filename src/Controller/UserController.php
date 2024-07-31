@@ -76,7 +76,7 @@ class UserController extends AbstractController
             ], JsonResponse::HTTP_BAD_REQUEST);
         }
 
-        $dialogs = $entityManager->getRepository(SereneResult::class)->findBy(['user_id_id' => $user->getId()]);
+        $dialogs = $entityManager->getRepository(SereneResult::class)->findBy(['user_id' => $user->getId()]);
 
         $user_data = [
             "user" => [
