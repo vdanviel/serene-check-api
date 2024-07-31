@@ -116,9 +116,17 @@ class SereneResultController extends AbstractController
 
         $dialogs = $entityManager->getRepository(SereneResult::class)->findAllWithLimit($limit);
         
-        //$jsonDialogs = $encoder->encode($dialogs, 'json');
+        $response = [];
 
-        return $this->json($dialogs);
+        foreach ($dialogs as $value) {
+
+            $user = $entityManager->getRepository(User::class)->find($value->getUserId());
+
+            array_push($response, ["content" => $value->getContent(), "diagnostic" => $value->getAiAnswer(), "username" => $user->getName()]);
+
+        }
+
+        return $this->json($response);
     }
 
 }
