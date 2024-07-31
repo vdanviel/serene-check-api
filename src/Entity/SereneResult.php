@@ -26,6 +26,9 @@ class SereneResult
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $created_at = null;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $diagnostic = null;
+
     public function __construct(){
 
         $this->created_at = new \DateTimeImmutable;
@@ -84,4 +87,17 @@ class SereneResult
 
         return $this;
     }
+
+    public function getDiagnostic(): ?string
+    {
+        return $this->diagnostic;
+    }
+
+    public function setDiagnostic(?string $diagnostic): static
+    {
+        $this->diagnostic = $diagnostic;
+
+        return $this;
+    }
+    
 }

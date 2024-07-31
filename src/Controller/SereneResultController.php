@@ -2,7 +2,7 @@
 
 namespace App\Controller;
 
-use App\Controller\GeminiController;
+use App\Controller\HFController;
 use App\Controller\UserFormController;
 
 
@@ -12,8 +12,6 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 
-use Symfony\Component\Serializer\Encoder\EncoderInterface;
-
 use App\Entity\SereneResult;
 use App\Entity\User;
 
@@ -21,13 +19,6 @@ use Doctrine\ORM\EntityManagerInterface;
 
 class SereneResultController extends AbstractController
 {
-
-    private $userFormController;
-
-    public function __construct(UserFormController $userFormController)
-    {
-        $this->userFormController = $userFormController;
-    }
 
     #[Route('/serene/result', name: 'serene_generate', methods: ['POST'])]
     public function generate(EntityManagerInterface $entityManager,  UserFormController $userFormController, Request $req): JsonResponse
@@ -73,20 +64,28 @@ class SereneResultController extends AbstractController
             $userFormController->register($entry['question'], $entry['answer'], $user->getId());
         }
     
-        $gpt_client = new GeminiController();
+        $hf_client = new HFController();
     
         $content = "";
         foreach ($data['dialog'] as $key => $entry) {
 
             $key = $key + 1;
 
-            $content .= "#$key " . $entry['question'] . " R: '" . $entry['answer'] . "' ";
+            $content .= "#$key " . $entry['question'] . " A: '" . $entry['answer'] . "' ";
 
         }
-    
-        $generated = $gpt_client->generateResult("Pretend you are a professional psychologist. Give me a FICTITIOUS diagnosis based on these questions whether I have anxiety or not even if thee chances are few. Justify why.", $content);
+        
+        $system_sentence = "Pretend you are a professional psychologist and I will pretend I am your patient. Give me based on these questions whether I have anxiety or not even if thee chances are few. Justify why.";
+
+        $generated = $hf_client->generateResult($system_sentence, $content);
         
         $ia_result = json_decode($generated, true);
+
+        $text = $ia_result['choices'][0]['message']['content'];
+
+        $checking = $hf_client->checkResult($text);
+
+        $check = json_decode($checking, true);
 
         //salvar interação com IA no banco de dados...
         $serene = new SereneResult();
@@ -94,6 +93,7 @@ class SereneResultController extends AbstractController
         $serene->setContent(json_encode($data['dialog']));//para salvar as perguntas e respostas no banco de dados em SereneResult vamos salvar como json..
         $serene->setAiAnswer(json_encode($ia_result));
         $serene->setUserId($user);
+        $serene->setDiagnostic($checking);
     
         // Tell Doctrine you want to (eventually) save the Product (no queries yet)
         $entityManager->persist($serene);
@@ -103,12 +103,14 @@ class SereneResultController extends AbstractController
     
         return $this->json([
             'status' => true,
-            'diagnostic' => $ia_result['candidates'][0]['content']['parts'][0]['text']
+            'description' => $text,
+            'diagnostic' => $check['answer']
         ]);
+
     }
     
     #[Route('/serene/all', name: 'serene_all', methods: ['GET'])]
-    public function index(Request $request, EncoderInterface $encoder, EntityManagerInterface $entityManager): Response
+    public function index(Request $request, EntityManagerInterface $entityManager): Response
     {
         $limit = $request->query->getInt('limit', 10);
 
@@ -120,11 +122,12 @@ class SereneResultController extends AbstractController
 
             $user = $entityManager->getRepository(User::class)->find($value->getUserId());
 
-            array_push($response, ["content" => $value->getContent(), "diagnostic" => $value->getAiAnswer(), "username" => $user->getName()]);
+            array_push($response, ["content" => $value->getContent(), "diagnostic" => $value->getAiAnswer(), "ansiety" => $value->isResult(), "username" => $user->getName()]);
 
         }
 
         return $this->json($response);
+
     }
 
 }

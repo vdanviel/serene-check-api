@@ -80,17 +80,24 @@ class UserController extends AbstractController
 
         $user_data = [
             "user" => [
-                "name" => $user->getName()
+                "name" => $user->getName(),
+                "token" => $user->getToken(),
+                "created_at" => $user->getCreatedAt()
             ],
-            "ai_answers" => [],
-            "questions" => [],
-            "created_at" => $user->getCreatedAt()
+            "interactions" => []
         ];
 
         foreach ($dialogs as $key => $value) {
             
-            array_push($user_data["ai_answers"], ["diagnostic" => $value->getAiAnswer(), "created_at" => $value->getCreatedAt()]);
-            array_push($user_data["questions"], ["content" => $value->getContent(), "created_at" => $value->getCreatedAt()]);
+            array_push(
+                $user_data["interactions"],
+                [
+                    "interaction" => $value->getContent(),
+                    "description" => $value->getAiAnswer(),
+                    "diagnostic" => $value->getDiagnostic(),
+                    "created_at" => $value->getCreatedAt()
+                ]
+            );
 
         }
 
