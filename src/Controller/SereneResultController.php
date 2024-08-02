@@ -77,23 +77,28 @@ class SereneResultController extends AbstractController
         
         $system_sentence = "Pretend you are a professional psychologist and I will pretend I am your patient. Give me based on these questions whether I have anxiety or not even if thee chances are few. Justify why.";
 
-        $generated = $hf_client->generateResult($system_sentence, $content);
+        $generated = $hf_client->generateAIAnswer($system_sentence, $content);
         
-        $ia_result = json_decode($generated, true);
+        $ai_answer = json_decode($generated, true)['choices'][0]['message']['content'];
 
-        $text = $ia_result['choices'][0]['message']['content'];
+        //generating boolean result if he/she has ansiety or not..
+        $result = $hf_client->hasAnsiety($ai_answer);
 
-        $checking = $hf_client->checkResult($text);
+        $result_answer = json_decode($result, true)['choices'][0]['message']['content'];
+        
+        //generating diagnostic..
+        $tittle = $hf_client->generateTitle($ai_answer);
 
-        $check = json_decode($checking, true);
+        $tittle_arr = json_decode($tittle, true);
 
         //salvar interação com IA no banco de dados...
         $serene = new SereneResult();
 
         $serene->setContent(json_encode($data['dialog']));//para salvar as perguntas e respostas no banco de dados em SereneResult vamos salvar como json..
-        $serene->setAiAnswer(json_encode($ia_result));
+        $serene->setAiAnswer(json_encode($ai_answer));
         $serene->setUserId($user);
-        $serene->setDiagnostic($checking);
+        $serene->setDiagnostic($tittle);
+        $serene->setResult($result_answer == "1" ? true : false);
     
         // Tell Doctrine you want to (eventually) save the Product (no queries yet)
         $entityManager->persist($serene);
@@ -102,9 +107,9 @@ class SereneResultController extends AbstractController
         $entityManager->flush();
     
         return $this->json([
-            'status' => true,
-            'description' => $text,
-            'diagnostic' => $check['answer']
+            'description' => $ai_answer,
+            'diagnostic' => $tittle_arr['answer'],
+            'result' => $result_answer == "1" ? true : false
         ]);
 
     }

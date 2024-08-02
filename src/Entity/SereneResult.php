@@ -21,13 +21,16 @@ class SereneResult
     private ?string $ai_answer = null;
 
     #[ORM\ManyToOne]
-    private ?User $user_id = null;
+    private ?User $user = null;
 
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $created_at = null;
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $diagnostic = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?bool $result = null;
 
     public function __construct(){
 
@@ -66,12 +69,12 @@ class SereneResult
 
     public function getUserId(): ?User
     {
-        return $this->user_id;
+        return $this->user;
     }
 
-    public function setUserId(?User $user_id): static
+    public function setUserId(?User $user): static
     {
-        $this->user_id = $user_id;
+        $this->user = $user;
 
         return $this;
     }
@@ -96,6 +99,18 @@ class SereneResult
     public function setDiagnostic(?string $diagnostic): static
     {
         $this->diagnostic = $diagnostic;
+
+        return $this;
+    }
+
+    public function isResult(): ?bool
+    {
+        return $this->result;
+    }
+
+    public function setResult(?bool $result): static
+    {
+        $this->result = $result;
 
         return $this;
     }

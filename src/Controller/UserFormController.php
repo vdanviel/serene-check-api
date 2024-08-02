@@ -34,11 +34,11 @@ class UserFormController extends AbstractController
         $this->entityManager = $entityManager;
     }
 
-    public function register(string $question, string $answer, int $user_id): JsonResponse
+    public function register(string $question, string $answer, int $user): JsonResponse
     {
 
         //verifica se usuario já existe..
-        $user = $this->entityManager->getRepository(User::class)->find($user_id);
+        $user = $this->entityManager->getRepository(User::class)->find($user);
 
         $user_form = new UserForm();
         $user_form->setQuestion($question);

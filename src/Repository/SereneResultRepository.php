@@ -58,7 +58,7 @@ class SereneResultRepository extends ServiceEntityRepository
             INNER JOIN p.category c
             WHERE p.id = :id*/
         $query = $entityManager->createQuery(
-            'SELECT sr, usrn.name FROM App\Entity\SereneResult sr INNER JOIN sr.user_id usrn ORDER BY sr.created_at DESC'
+            'SELECT sr, usr.id, usr.name FROM App\Entity\SereneResult sr INNER JOIN sr.user usr ORDER BY sr.created_at DESC'
         )->setMaxResults($limit)->setFirstResult($offset);
 
         // returns an array of Product objects
@@ -72,7 +72,7 @@ class SereneResultRepository extends ServiceEntityRepository
         $entityManager = $this->getEntityManager();
 
         $query = $entityManager->createQuery(
-            'SELECT table FROM App\Entity\SereneResult table WHERE table.user_id = :id ORDER BY table.created_at DESC'
+            'SELECT table FROM App\Entity\SereneResult table WHERE table.user = :id ORDER BY table.created_at DESC'
         )->setParameter(':id', $user->getId())->setMaxResults($limit)->setFirstResult($offset);
 
         // returns an array of Product objects

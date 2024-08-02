@@ -25,9 +25,9 @@ final class Version20240729153635 extends AbstractMigration
         $this->addSql('ALTER TABLE serene_result ADD content TEXT DEFAULT NULL');
         $this->addSql('ALTER TABLE serene_result DROP sentence');
         $this->addSql('ALTER TABLE serene_result ALTER ia_answer TYPE TEXT');
-        $this->addSql('ALTER TABLE serene_result RENAME COLUMN id_user_form_id TO user_id_id');
-        $this->addSql('ALTER TABLE serene_result ADD CONSTRAINT FK_52A464D19D86650F FOREIGN KEY (user_id_id) REFERENCES "user" (id) NOT DEFERRABLE INITIALLY IMMEDIATE');
-        $this->addSql('CREATE INDEX IDX_52A464D19D86650F ON serene_result (user_id_id)');
+        $this->addSql('ALTER TABLE serene_result RENAME COLUMN id_user_form_id TO user_id');
+        $this->addSql('ALTER TABLE serene_result ADD CONSTRAINT FK_52A464D19D86650F FOREIGN KEY (user_id) REFERENCES "user" (id) NOT DEFERRABLE INITIALLY IMMEDIATE');
+        $this->addSql('CREATE INDEX IDX_52A464D19D86650F ON serene_result (user_id)');
     }
 
     public function down(Schema $schema): void
@@ -39,7 +39,7 @@ final class Version20240729153635 extends AbstractMigration
         $this->addSql('ALTER TABLE serene_result ADD sentence JSON DEFAULT NULL');
         $this->addSql('ALTER TABLE serene_result DROP content');
         $this->addSql('ALTER TABLE serene_result ALTER ia_answer TYPE JSON');
-        $this->addSql('ALTER TABLE serene_result RENAME COLUMN user_id_id TO id_user_form_id');
+        $this->addSql('ALTER TABLE serene_result RENAME COLUMN user_id TO id_user_form_id');
         $this->addSql('ALTER TABLE serene_result ADD CONSTRAINT fk_52a464d1243af005 FOREIGN KEY (id_user_form_id) REFERENCES user_form (id) NOT DEFERRABLE INITIALLY IMMEDIATE');
         $this->addSql('CREATE UNIQUE INDEX uniq_52a464d1243af005 ON serene_result (id_user_form_id)');
     }

@@ -24,7 +24,7 @@ class HFController extends AbstractController
     }
 
     //https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.3
-    public function generateResult(string $system_content, string $user_content): string
+    public function generateAIAnswer(string $system_content, string $user_content): string
     {
 
         $curl = curl_init();
@@ -74,14 +74,14 @@ class HFController extends AbstractController
     }
 
     //https://huggingface.co/deepset/roberta-base-squad2
-    public function checkResult(string $text): string
+    public function generateTitle(string $text): string
     {
 
         $curl = curl_init();
 
         $payload = [
             "inputs" => [
-                "question" => "Do I have ansiety or not?",
+                "question" => "This is a diagnostic. It tells whether the subject has anxiety or not. Based on this diagnostic the subject has anxiety or not?",
                 "context" => $text 
             ]
         ];
@@ -116,5 +116,53 @@ class HFController extends AbstractController
     
         return json_encode($response_data);
     }
+
+    //https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.3
+    public function hasAnsiety(string $text): string
+    {
+
+        $curl = curl_init();
+
+        $payload = [
+            "model" => "mistralai/Mistral-7B-Instruct-v0.3",
+            "messages" => [
+                [
+                    "role" => "user",
+                    "content" => "'$text' This is a diagnostic. It tells whether the subject has anxiety or not. Based on this diagnostic the subject has anxiety or not? Answer ONLY '1' if subject has ansiety or '0' if he doesn't. DONT'T SAY ANYTHING ELSE."
+                ]
+            ],
+            "max_tokens" => 500,
+            "stream" => false
+        ];
+
+        curl_setopt_array($curl, [
+            CURLOPT_URL => self::$envoriment['HF_CHAT_MODEL_ENDPOINT'], 
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_HTTPHEADER => [
+                'Content-Type: application/json',
+                "Authorization: Bearer " . self::$envoriment['HF_API_KEY']
+            ],
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_POST => true,
+            CURLOPT_POSTFIELDS => json_encode($payload)
+        ]);
+
+        $response = curl_exec($curl);
     
+        if ($error = curl_error($curl)) {
+            curl_close($curl);
+            return json_encode(['error' => $error]);
+        }
+
+        curl_close($curl);
+    
+        $response_data = json_decode($response, true);
+
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            return json_encode(['error' => 'JSON decode error: ' . json_last_error_msg(), 'response' => $response]);
+        }
+    
+        return json_encode($response_data);
+    }
+
 }
