@@ -57,10 +57,78 @@ class UserController extends AbstractController
     #[Route('/user/info', name:'get_user_info', methods: ['GET'])]
     public function find(EntityManagerInterface $entityManager, Request $request): JsonResponse
     {
+        $token = $request->query->getString('token');
+        $offset = $request->query->getString('offset', 0);
+        $limit = $request->query->getString('limit', 5);
+    
+        if ($token === "" || $offset === "" || $limit === "") {
+            return $this->json([
+                'status' => false,
+                'message' => 'Please send the `token` / `offset` / `limit` query.'
+            ], JsonResponse::HTTP_BAD_REQUEST);
+        }
+    
+        $user = $entityManager->getRepository(User::class)->findOneBy(['token' => $token]);
+    
+        if (!$user) {
+            return $this->json([
+                'status' => false,
+                'message' => 'User not found.'
+            ], JsonResponse::HTTP_BAD_REQUEST);
+        }
+    
+        $dialogs = $entityManager->getRepository(SereneResult::class)->listUserDialogs($user, $limit, $offset);
+    
+        // Get total interactions
+        $total_interactions = $entityManager->getRepository(SereneResult::class)->count(['user' => $user->getId()]);
+    
+        // Calculate total answers and chances of anxiety
+        $total_answers = 0;
+        $anxiety_true_count = 0;
+        $anxiety_false_count = 0;
+    
+        foreach ($dialogs as $dialog) {
+            $content = json_decode($dialog['content'], true);
+    
+            if (is_array($content)) {
+                foreach ($content as $interaction) {
+                    if (isset($interaction['answer'])) {
+                        $total_answers++;
+                    }
+                }
+            }
+    
+            if ($dialog['result'] === true) {
+                $anxiety_true_count++;
+            } else {
+                $anxiety_false_count++;
+            }
+        }
+    
+        $total_results = $anxiety_true_count + $anxiety_false_count;
+        $chances_anxiety = $total_results > 0 ? ($anxiety_true_count / $total_results) * 100 : 0;
+    
+        $user_data = [
+            "user" => [
+                "name" => $user->getName(),
+                "created_at" => $user->getCreatedAt(),
+                "total_interactions" => $total_interactions,
+                "total_answers" => $total_answers,
+                "chances_anxiety" => $chances_anxiety
+            ],
+            "interactions" => $dialogs,
+        ];
+    
+        return $this->json($user_data, JsonResponse::HTTP_OK);
+    }
+
+    #[Route('/user/diags', name:'get_user_diags', methods: ['GET'])]
+    public function findDiags(EntityManagerInterface $entityManager, Request $request): JsonResponse
+    {
 
         $token = $request->query->getString('token');
         $offset = $request->query->getString('offset', 0);
-        $limit = $request->query->getString('limit', 10);
+        $limit = $request->query->getString('limit', 5);
 
         if ($token === "" || $offset === "" || $limit === "") {
             return $this->json([
@@ -80,16 +148,7 @@ class UserController extends AbstractController
 
         $dialogs = $entityManager->getRepository(SereneResult::class)->listUserDialogs($user, $limit, $offset);
 
-        $user_data = [
-            "user" => [
-                "name" => $user->getName(),
-                "token" => $user->getToken(),
-                "created_at" => $user->getCreatedAt()
-            ],
-            "interactions" => $dialogs
-        ];
-
-        return $this->json($user_data, JsonResponse::HTTP_OK);
+        return $this->json($dialogs, JsonResponse::HTTP_OK);
 
     }
 

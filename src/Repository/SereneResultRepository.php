@@ -79,4 +79,18 @@ class SereneResultRepository extends ServiceEntityRepository
         return $query->getArrayResult();
 
     }
+
+    public function getDialog(int $id): array
+    {
+        //https://www.doctrine-project.org/projects/doctrine-orm/en/current/reference/query-builder.html#the-querybuilder
+        $qb = $this->createQueryBuilder('sr')
+            ->where('sr.id = :id')
+            ->setParameter('id', $id)
+            ->setMaxResults(1);
+
+        $query = $qb->getQuery();
+
+        return $query->getArrayResult();
+
+    }
 }
