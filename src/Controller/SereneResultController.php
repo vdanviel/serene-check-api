@@ -103,7 +103,7 @@ class SereneResultController extends AbstractController
 
             }
             
-            $system_sentence = "Pretend you are a professional psychologist and I will pretend I am your patient. Give me based on these questions whether I have anxiety or not even if thee chances are few. Justify why.";
+            $system_sentence = "Pretend you are a professional psychologist and I will pretend I am your patient. Give me A TEXT based on these questions whether I have anxiety or not even if thee chances are few. Justify why.";
 
             $generated = $hf_client->generateAIAnswer($system_sentence, $content);
             
@@ -347,7 +347,7 @@ class SereneResultController extends AbstractController
                 ], JsonResponse::HTTP_BAD_REQUEST);
             }
 
-            $dialog = $entityManager->getRepository(SereneResult::class)->getDialog(intval($id));
+            $dialog = $entityManager->getRepository(SereneResult::class)->getDialog(intval($id))[0];
 
             if (empty($dialog)) {
                 return $this->json([
@@ -355,6 +355,9 @@ class SereneResultController extends AbstractController
                     "message" => "This dialog doesn't exist."
                 ], JsonResponse::HTTP_BAD_REQUEST);
             }
+        
+
+            $dialog['ai_answer'] = json_decode($dialog['ai_answer']);
 
             return $this->json($dialog);
 

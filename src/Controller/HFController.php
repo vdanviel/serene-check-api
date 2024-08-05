@@ -128,7 +128,7 @@ class HFController extends AbstractController
             "messages" => [
                 [
                     "role" => "user",
-                    "content" => "'$text' This is a diagnostic. It tells whether the subject has anxiety or not. Based on this diagnostic the subject has anxiety or not? Answer ONLY '1' if subject has ansiety or '0' if he doesn't. DONT'T SAY ANYTHING ELSE."
+                    "content" => "'$text' This is a diagnostic. It tells whether the subject has anxiety or not. Based on this diagnostic the subject has anxiety or not (if it says even that the subject has few chances of having anxiety, consider that it has not)? Answer ONLY '1' if subject has ansiety or '0' if he doesn't. DONT'T SAY ANYTHING ELSE."
                 ]
             ],
             "max_tokens" => 500,
